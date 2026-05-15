@@ -1,25 +1,15 @@
 library(clusterProfiler)
 library(org.Hs.eg.db)
+genes = read.table("gene_list_tss_upstream_with_pattern/optimal_site_nrf1_in_hg38_tss_upstream_500.genes.tsv", 
+                   sep = "\t", header = F, stringsAsFactors = F)$V1
+ego <- enrichGO(gene         = genes,
+                OrgDb        = org.Hs.eg.db,
+                keyType      = "SYMBOL",
+                ont          = "BP",
+                pAdjustMethod = "BH",
+                qvalueCutoff = 0.01)
 
-# Load your gene list
-genes_to_test <- readLines("my_nrf1_genes.txt")
-
-# Convert Symbols to Entrez IDs
-gene_df <- bitr(genes_to_test, 
-                fromType = "SYMBOL",
-                toType = "ENTREZID",
-                OrgDb = org.Hs.eg.db)
-
-gene_ids <- unique(gene_df$ENTREZID)
-
-# Run the GO Enrichment
-ego <- enrichGO(gene = gene_ids,
-                OrgDb = org.Hs.eg.db,
-                ont = "BP",
-                readable = TRUE)
-
-# Create and save the dot plot
-library(ggplot2)
-png("nrf1_dotplot.png", width = 800, height = 1000)
-dotplot(ego, showCategory = 15) + ggtitle("NRF1 Targeted Pathways")
+write.csv(as.data.frame(ego), "GO_annotation_results.csv")
+pdf ("dotplot.pdf", height = 8, width = 8)
+dotplot(ego, showCategory =20, font.size = 6)
 dev.off()
